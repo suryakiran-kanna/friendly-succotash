@@ -5,6 +5,11 @@ from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 from math import radians, degrees
 from actionlib_msgs.msg import *
 from geometry_msgs.msg import Point
+import roslaunch
+from random import randint
+
+spawn_x=[-7.57,-7.75,-2.33,-1.71,-1.47,3.76,6.45,1.57,-3.39,6.67]
+spawn_y=[-4.27,4.82,-1.19,3.69,7.73,4.1,-0.19,-3.89,-5.03,-8.65]
 
 def moveToGoal(xGoal,yGoal):
 
@@ -44,9 +49,7 @@ def moveToGoal(xGoal,yGoal):
         return False
 
 def move():
-
-    rospy.init_node('map_navigation', anonymous=False)
-    
+   
     one_x = 8.17984202602
     one_y = -8.49176794236
     two_x = 1.79868924906
@@ -58,10 +61,31 @@ def move():
     moveToGoal(one_x,one_y)
     moveToGoal(three_x,three_y)
 
+def spawn():
+    
+#<!-- Spawn Jackal -->
+    package ='gazebo_ros'
+    executable ='spawn_model'
+
+    x = randint(0,9)
+   
+    node = roslaunch.core.Node(package, executable, args="-urdf -model jackal -param robot_description -x "+str(spawn_x[x])+" -y "+str(spawn_y[x])+" -z 1.0")
+    
+	
+    launch = roslaunch.scriptapi.ROSLaunch()
+    launch.start()
+
+    process = launch.launch(node)
+    while process.is_alive():
+        print process.is_alive()
+    
+    return x
 
 if __name__ == '__main__':
     try:
-        move()
+	rospy.init_node('map_navigation', anonymous=False)
+	spawn()
+       # move()
         rospy.spin()
 
     except rospy.ROSInterruptException:
