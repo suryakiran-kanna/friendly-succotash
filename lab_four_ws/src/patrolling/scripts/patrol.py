@@ -30,9 +30,9 @@ spawn_x=[-7.57,-7.75,-2.33,-1.71,-1.47,3.76,6.45,1.57,-3.39,6.67]
 spawn_y=[-4.27,4.82,-1.19,3.69,7.73,4.1,-0.19,-3.89,-5.03,-8.65]
 
 # Predefined waypoints
-NumGoals = 7
-goal_x=[-4.3806, 6.515, 3.8655, 6.515, -4.1195, -7.9609, 5.9347]
-goal_y=[-1.2384, 6.6707, -2.8412, 6.6707, 5.2126,-4.1242, -8.4489]
+goal_x = [-4.3806, 6.515, 3.8655, -4.1195, -7.9609, 5.9347]
+goal_y = [-1.2384, 6.6707, -2.8412, 5.2126,-4.1242, -8.4489]
+WaypointRotation = [0,1,2,1,3,4,5,4,3,1]
 
 # Rotation Parameters
 rotTime = 100
@@ -122,13 +122,19 @@ def rotate():
 # FUNCTION: move()
 # Issues new goals to the navigation stack to follow a defined
 # patrol path
-def move():
-    index = 0
+def move(start):
+    fullRotation = len(WaypointRotation)
+    count = 0
+    index = start
     
-    while(index < NumGoals):
-        moveToGoal(goal_x[index],goal_y[index], 30)
+    while(count < fullRotation):
+        if(index < fullRotation):
+            moveToGoal(goal_x[WaypointRotation[index]],goal_y[WaypointRotation[index]], 30)
+        else:
+            moveToGoal(goal_x[WaypointRotation[index-fullRotation]],goal_y[WaypointRotation[index-fullRotation]], 30)
         rotate()
         index = index + 1
+        count = count + 1
 
 # FUNCTION: spawn()
 # Configures and launches a URDF spawner for a jackal with a
@@ -173,12 +179,13 @@ def spawn():
 # validation fails, it continues to request paths from the 
 # global planner until one fits.
 def findClosest():
+    numGoals = len(goal_x)
     index = 0
     shortestIndex = 0;
     shortestDistance = 0;
     
     # Cycle through waypoints to see which is closest
-    while(index < NumGoals):
+    while(index < numGoals):
         moveToGoal(goal_x[index],goal_y[index],0.01)
         
         # varaibles for checking if path is valid
@@ -226,7 +233,7 @@ if __name__ == '__main__':
         time.sleep(10)
         init()
         startIndex = findClosest()
-        #move()
+        move(startIndex)
         time.sleep(20)   
         #rospy.spin()
 
