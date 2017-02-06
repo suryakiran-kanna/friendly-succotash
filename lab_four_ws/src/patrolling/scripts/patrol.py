@@ -1,4 +1,18 @@
 #!/usr/bin/env python
+
+# -------------------------Description:-------------------------
+# Patrol script to spawn a Jackal to a random spawn point, plan
+# a patrol path based on closest known waypoint, and execute the 
+# patrol plan.
+#
+#
+# |-Intro to Robotics - EE5900 - Spring 2017
+#   |-Assignment #3
+#     |-Project #4 Group #1
+#       |-Surya (Team Lead)
+#       |-James
+#       |-Derek
+
 import rospy
 import actionlib
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
@@ -32,25 +46,30 @@ navPathY = 0
 navPathLength = 0
 matchMulti = 10
 
-# Callback for a path messages
+# CALLBACK: path_callback(myPath)
+# Callback for Path messages published by the global path
+# planner. Calculates the length of the proposed path and
+# stores the end coordinates as well as the length
 def path_callback(myPath):
     global navPathX, navPathY, navPathLength
     numPoints = len(myPath.poses)
-    pIndex = 0
+    index = 0
     length = 0
     
     if(numPoints > 1):
-        while(pIndex < (numPoints-1)):
-            dx = myPath.poses[pIndex + 1].pose.position.x - myPath.poses[pIndex].pose.position.x
-            dy = myPath.poses[pIndex + 1].pose.position.y - myPath.poses[pIndex].pose.position.y
+        while(index < (numPoints-1)):
+            dx = myPath.poses[index + 1].pose.position.x - myPath.poses[index].pose.position.x
+            dy = myPath.poses[index + 1].pose.position.y - myPath.poses[index].pose.position.y
             length = length + math.sqrt(math.pow(dx,2) + math.pow(dy,2))
-            pIndex = pIndex + 1
+            index = index + 1
             
         navPathX = myPath.poses[numPoints-1].pose.position.x
         navPathY = myPath.poses[numPoints-1].pose.position.y
         navPathLength = length
 
-# Move a new goal
+# FUNCTION: moveToGoal(xGoal,yGoal,tLimit)
+# Add a goal to the navigation service at x coordinate xGoal, 
+# y coordinate yGoal, and a time limit of tLimit in seconds
 def moveToGoal(xGoal,yGoal,tLimit):
     #define a client for to send goal requests to the move_base server through a SimpleActionClient
     ac = actionlib.SimpleActionClient("move_base", MoveBaseAction)
@@ -88,16 +107,21 @@ def moveToGoal(xGoal,yGoal,tLimit):
         return False
         
     
-# Rotate in place based on rotate parameters
+# FUNCTION: rotate()
+# Publish Twist messages to cause jackal to rotate in place
+# at a speed and duration as defined in the rotate parameters
+# Good to call once a waypoint is reached to help fill the map
 def rotate():
-    tIndex = 0
+    index = 0
     pub = rospy.Publisher('/jackal_velocity_controller/cmd_vel', Twist, queue_size=10)
-    while(tIndex < rotTime):
+    while(index < rotTime):
         pub.publish(rotMsg)
         time.sleep(0.1) 
-        tIndex = tIndex + 1
+        index = index + 1
     
-# Move loop
+# FUNCTION: move()
+# Issues new goals to the navigation stack to follow a defined
+# patrol path
 def move():
     index = 0
     
@@ -106,7 +130,11 @@ def move():
         rotate()
         index = index + 1
 
-# Spawn a new Jackel at a random location
+# FUNCTION: spawn()
+# Configures and launches a URDF spawner for a jackal with a
+# randomly assigned spawn point. Then, publishes the spawn
+# location to the AMCL /initialpose topic to synchronize map 
+# and world. 
 def spawn():
     # Setup the URDF spawn node and launch it with random spawn point
     package ='gazebo_ros'
@@ -137,7 +165,13 @@ def spawn():
     
     return x 
 
-# Find the closest waypoint via path
+# FUNCTION: findClosest()
+# Issues goals with very short durations to force Path messages
+# from the global planner which are then used to evaluate the
+# closest waypoint. Validates that the proposed path has an
+# end point very close to the corresponding waypoint. If the 
+# validation fails, it continues to request paths from the 
+# global planner until one fits.
 def findClosest():
     index = 0
     shortestIndex = 0;
@@ -178,7 +212,9 @@ def findClosest():
     
     return shortestIndex
         
-# Initialize the patrol, setup callback for path messages, spawn the robot randomly
+# FUNCTION: init()
+# Initializes this node and sets up subsciber for Path messages.
+# Then spawns a new Jackal using the random spawn function
 def init():
     rospy.init_node('map_navigation', anonymous=False)
     rospy.Subscriber("/move_base/NavfnROS/plan", Path, path_callback) 
