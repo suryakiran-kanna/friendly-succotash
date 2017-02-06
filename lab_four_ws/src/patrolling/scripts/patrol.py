@@ -7,6 +7,7 @@ from actionlib_msgs.msg import *
 from geometry_msgs.msg import Point
 import roslaunch
 from random import randint
+import time
 
 spawn_x=[-7.57,-7.75,-2.33,-1.71,-1.47,3.76,6.45,1.57,-3.39,6.67]
 spawn_y=[-4.27,4.82,-1.19,3.69,7.73,4.1,-0.19,-3.89,-5.03,-8.65]
@@ -38,7 +39,7 @@ def moveToGoal(xGoal,yGoal):
     rospy.loginfo("Sending goal location ...")
     ac.send_goal(goal)
     
-    ac.wait_for_result(rospy.Duration(180))
+    ac.wait_for_result(rospy.Duration(10))
 
     if(ac.get_state() ==  GoalStatus.SUCCEEDED):
         rospy.loginfo("You have reached the destination")
@@ -76,17 +77,19 @@ def spawn():
     launch.start()
 
     process = launch.launch(node)
-    while process.is_alive():
-        print process.is_alive()
+    #while process.is_alive():
+      #  print process.is_alive()
     
-    return x
+    return x 
+
 
 if __name__ == '__main__':
     try:
-	rospy.init_node('map_navigation', anonymous=False)
+        rospy.init_node('map_navigation', anonymous=False)
 	spawn()
-       # move()
-        rospy.spin()
+        #move()
+	time.sleep(20)   
+	#rospy.spin()
 
     except rospy.ROSInterruptException:
         rospy.loginfo("map_navigation node terminated.")
