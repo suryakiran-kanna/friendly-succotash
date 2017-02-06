@@ -34,8 +34,8 @@
     <arg name="joystick" value="false"/>
   </include>
 
-  <node required="true" name="patrol" pkg="patrolling" type="patrol.py" output="screen"/>
-  <!-- node required="true" name="patrol" pkg="patrolling" type="patrol.py" output="screen" launch-prefix="xterm -e"/ -->
+  <!-- node required="true" name="patrol" pkg="patrolling" type="patrol.py" output="screen"/ -->
+  <node required="true" name="patrol" pkg="patrolling" type="patrol.py" output="screen" launch-prefix="xterm -e"/>
   
   <!-- Run the map server -->
  <arg name="map_file" default="$(find patrolling)/maps/jackal_race.yaml"/>
