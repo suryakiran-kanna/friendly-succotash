@@ -39,7 +39,7 @@ def replay():
     package ='rosbag'
     executable ='play'
    
-    node = roslaunch.core.Node(package, executable, args="/home/robotics/git_work/friendly-succotash/lab_four_ws/src/patrolling/bags/nav.bag")
+    node = roslaunch.core.Node(package, executable, args=str(os.path.dirname(os.path.realpath(__file__)))[:-7]+"bags/nav.bag")
     	
     launch = roslaunch.scriptapi.ROSLaunch()
     launch.start()
