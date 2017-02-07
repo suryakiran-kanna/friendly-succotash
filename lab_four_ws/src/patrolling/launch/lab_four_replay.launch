@@ -1,0 +1,10 @@
+<launch>
+  
+  <param name="use_sim_time" value="true" />
+
+  <!-- Run gmapping -->
+  <node pkg="gmapping" type="slam_gmapping" name="mapper" args="scan:=/front/scan" />
+
+  <!-- replay-->
+  <node pkg="patrolling" type="replay.py" name="patrol_replay" required="true" />
+</launch>
